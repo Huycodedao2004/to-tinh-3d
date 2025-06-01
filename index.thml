@@ -3,156 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tỏ Tình 3D</title>
+  <title>Anh yêu em</title>
   <style>
     body {
       margin: 0;
-      background: black;
       overflow: hidden;
+      background: linear-gradient(to bottom, #000022, #220033);
+      font-family: 'Segoe UI', sans-serif;
       perspective: 1000px;
-      touch-action: none;
     }
-    .scene {
+
+    .container {
+      position: relative;
       width: 100vw;
       height: 100vh;
       transform-style: preserve-3d;
-      transform: rotateX(0deg) rotateY(0deg);
-      position: relative;
     }
-    .letter {
+
+    .text {
       position: absolute;
+      color: #ff66cc;
       font-size: 24px;
-      color: #ff4081;
-      font-family: 'Arial', sans-serif;
-      transform-style: preserve-3d;
-      animation: fall 15s linear forwards;
+      font-weight: bold;
+      text-shadow: 0 0 5px #fff, 0 0 10px #f0f;
+      animation: fall linear infinite;
+      white-space: nowrap;
     }
+
+    .heart {
+      position: absolute;
+      color: #ff5fa2;
+      font-size: 16px;
+      opacity: 0.8;
+      animation: snowFall linear infinite;
+      z-index: 0;
+    }
+
     @keyframes fall {
       0% {
-        transform: translateY(-100vh);
-        opacity: 0;
-      }
-      10% {
+        transform: translateY(-100px) translateZ(0px);
         opacity: 1;
       }
       100% {
-        transform: translateY(100vh);
-        opacity: 0.8;
+        transform: translateY(110vh) translateZ(-300px);
+        opacity: 0;
       }
     }
-    #qrcode {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: white;
-      padding: 8px;
-      border-radius: 12px;
+
+    @keyframes snowFall {
+      0% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh);
+        opacity: 0;
+      }
+    }
+
+    audio {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div class="scene" id="scene"></div>
-  <canvas id="qrcode"></canvas>
-
-  <!-- QR Code Library -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <div class="container" id="rain"></div>
+  <audio autoplay loop>
+    <source src="https://cdn.pixabay.com/download/audio/2023/03/05/audio_1a8b8d1f7c.mp3?filename=romantic-piano-14474.mp3" type="audio/mpeg">
+  </audio>
 
   <script>
-    const scene = document.getElementById('scene');
-    const text = "Anh yêu em ❤️";
-    const letters = [];
+    const container = document.getElementById("rain");
+    const letters = "Anh yêu em ❤️";
 
-    function createLetters() {
-      scene.innerHTML = '';
-      letters.length = 0;
-      for (let i = 0; i < text.length; i++) {
-        const span = document.createElement('span');
-        span.className = 'letter';
-        span.innerText = text[i];
-        span.style.left = Math.random() * window.innerWidth + 'px';
-        span.style.top = Math.random() * -200 + 'px';
-        span.style.animation = 'fall 15s linear forwards';
-        span.style.animationDelay = (Math.random() * 2) + 's';
-        scene.appendChild(span);
-        letters.push(span);
-      }
+    function createFallingText() {
+      const text = document.createElement("div");
+      text.className = "text";
+      text.innerText = letters;
+
+      text.style.left = Math.random() * 100 + "vw";
+      text.style.animationDuration = (5 + Math.random() * 5) + "s";
+      text.style.fontSize = (20 + Math.random() * 20) + "px";
+      text.style.transform = `translateZ(${Math.random() * 400 - 200}px)`;
+
+      container.appendChild(text);
+      setTimeout(() => container.removeChild(text), 10000);
     }
 
-    function formHeart() {
-      letters.forEach((el, i) => {
-        const angle = i * (2 * Math.PI / letters.length);
-        const x = 160 * Math.sin(angle) * (1 - Math.abs(Math.cos(angle)));
-        const y = -160 * Math.cos(angle);
-        const z = 60 * Math.sin(i);
+    function createHeart() {
+      const heart = document.createElement("div");
+      heart.className = "heart";
+      heart.innerText = "❄️";
 
-        el.style.transition = 'transform 2s ease, opacity 2s';
-        el.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
-        el.style.opacity = 1;
-      });
+      heart.style.left = Math.random() * 100 + "vw";
+      heart.style.fontSize = (10 + Math.random() * 10) + "px";
+      heart.style.animationDuration = (10 + Math.random() * 10) + "s";
 
-      // Sau 5s → reset và lặp lại
-      setTimeout(() => {
-        createLetters();
-        setTimeout(formHeart, 15000); // Lặp tiếp sau 15s
-      }, 5000);
+      container.appendChild(heart);
+      setTimeout(() => container.removeChild(heart), 20000);
     }
 
-    createLetters();
-    setTimeout(formHeart, 15000); // Lần đầu sau 15s
-
-    // Điều khiển xoay 3D
-    let rotateX = 0, rotateY = 0;
-    let lastX, lastY, isDragging = false;
-
-    function updateRotation() {
-      scene.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-    }
-
-    // Chuột
-    document.addEventListener('mousedown', e => {
-      isDragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
-    });
-    document.addEventListener('mouseup', () => isDragging = false);
-    document.addEventListener('mousemove', e => {
-      if (isDragging) {
-        const dx = e.clientX - lastX;
-        const dy = e.clientY - lastY;
-        rotateY += dx * 0.5;
-        rotateX -= dy * 0.5;
-        updateRotation();
-        lastX = e.clientX;
-        lastY = e.clientY;
-      }
-    });
-
-    // Cảm ứng
-    document.addEventListener('touchstart', e => {
-      if (e.touches.length === 1) {
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
-      }
-    });
-    document.addEventListener('touchmove', e => {
-      if (e.touches.length === 1) {
-        const dx = e.touches[0].clientX - lastX;
-        const dy = e.touches[0].clientY - lastY;
-        rotateY += dx * 0.5;
-        rotateX -= dy * 0.5;
-        updateRotation();
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
-      }
-    });
-
-    // QR Code dựa trên chính URL của trang hiện tại
-    const currentURL = location.href;
-    QRCode.toCanvas(document.getElementById('qrcode'), currentURL, function (error) {
-      if (error) console.error(error);
-      console.log("QR đã tạo thành công");
-    });
+    setInterval(createFallingText, 300);
+    setInterval(createHeart, 150);
   </script>
 </body>
 </html>
-# to-tinh-3d
